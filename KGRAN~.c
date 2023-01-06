@@ -27,10 +27,10 @@ typedef struct Grain {
 	float waveSampInc; 
 	float ampSampInc; 
 	float ampPhase; 
-	int endTime; 
+	float endTime; 
 	float panR; 
 	float panL; 
-	int currTime; 
+	float currTime; 
 	bool isplaying;
 	} Grain;
 
@@ -351,14 +351,14 @@ void kgran_stop(t_kgran *x){
 // PARAMETER MESSAGES
 ////
 
-void kgran_grainrate(t_kgran *x, double rl, double rm, double rh, double rt){
+void kgran_grainrate(t_kgran* x, double rl, double rm, double rh, double rt) {
 	x->grainRateVarLow = rl;
 	x->grainRateVarMid = fmax(rm, rl);
 	x->grainRateVarHigh = fmax(rh, rm);
 	x->grainRateVarTight = rt;
 }
 
-void kgran_graindur(t_kgran *x, double dl, double dm, double dh, double dt){
+void kgran_graindur(t_kgran* x, double dl, double dm, double dh, double dt) {
 	x->grainDurLow = dl;
 	x->grainDurMid = fmax(dm, dl);
 	x->grainDurHigh = fmax(dh, dm);
@@ -395,9 +395,9 @@ void kgran_new_grain(t_kgran *x, Grain *grain, double sync){
 	int idealShift = floor(floatShift * (float)x->w_len);
 	//post("2");
 	//post("");
-	float trans = (float)prob(x->transLow, x->transMid, x->transHigh, x->transTight);
+	double trans = prob(x->transLow, x->transMid, x->transHigh, x->transTight);
 	//post("Passed the trans loop");
-	float increment = cpsoct(10.0 + trans) * x->oneover_cpsoct10;
+	double increment = cpsoct(10.0 + trans) * x->oneover_cpsoct10;
 	float offset; // deviation every sample versus the head
 	//post("3");
 	if (x->w_connected)
@@ -451,11 +451,11 @@ void kgran_new_grain(t_kgran *x, Grain *grain, double sync){
 	grain->panR = panR;
 	grain->panL = 1 - panR; // separating these in RAM means fewer sample rate calculations
 	grain->endTime = grainDurSamps * increment + grain->currTime;
-	//post("New grain finished!");
+	//post("New grain with start time %f end time %f", grain->currTime, grain->endTime);
 }
 
 void kgran_reset_grain_rate(t_kgran *x){
-	x->newGrainCounter = (int)round(sys_getsr() * prob(x->grainRateVarLow, x->grainRateVarMid, x->grainDurHigh, x->grainDurTight));
+	x->newGrainCounter = (int)round(sys_getsr() * prob(x->grainRateVarLow, x->grainRateVarMid, x->grainRateVarHigh, x->grainRateVarTight));
 	//post("Setting grain rate to %d", x->newGrainCounter);
 }
 
@@ -494,13 +494,14 @@ void kgran_perform64(t_kgran *x, t_object *dsp64, double **ins, long numins, dou
 			Grain* currGrain = &x->grains[j];
 			if (currGrain->isplaying)
 			{
-				if (++(*currGrain).currTime > currGrain->endTime)
+				if ((*currGrain).currTime > currGrain->endTime)
 				{
 					currGrain->isplaying = false;
+					//post("Deleting grain with amp phase %f", currGrain->ampPhase);
 				}
 				else
 				{
-					int currTimeInBuffer = currGrain->currTime % x->w_len;
+					int currTimeInBuffer = (int)floor(currGrain->currTime) % x->w_len;
 					float grainAmp = oscili(1, currGrain->ampSampInc, e, x->w_envlen, &((*currGrain).ampPhase));
 					float grainOut = grainAmp * b[currTimeInBuffer]; // should include an interpolation option at some point
 					currGrain->currTime += currGrain->waveSampInc;
