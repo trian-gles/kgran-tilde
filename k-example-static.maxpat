@@ -45,7 +45,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 430.0, 124.0, 112.0, 22.0 ],
+					"patching_rect" : [ 361.0, 109.0, 112.0, 22.0 ],
 					"text" : "grainhead 0 0.5 1 1"
 				}
 
@@ -71,19 +71,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "float", "bang" ],
-					"patching_rect" : [ 386.0, 300.0, 124.0, 22.0 ],
-					"text" : "buffer~ staticbuf 2000"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-8",
-					"maxclass" : "message",
-					"numinlets" : 2,
-					"numoutlets" : 1,
-					"outlettype" : [ "" ],
-					"patching_rect" : [ 423.0, 227.0, 180.0, 22.0 ]
+					"patching_rect" : [ 386.0, 300.0, 117.0, 22.0 ],
+					"text" : "buffer~ staticbuf 500"
 				}
 
 			}
@@ -228,8 +217,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 243.0, 109.0, 75.0, 22.0 ],
-					"text" : "trans 2 0 2 1"
+					"patching_rect" : [ 243.0, 109.0, 79.0, 22.0 ],
+					"text" : "trans -1 0 1 1"
 				}
 
 			}
