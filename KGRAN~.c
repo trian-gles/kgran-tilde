@@ -93,7 +93,7 @@ void kgran_stop(t_kgran *x);
 void kgran_perform64(t_kgran *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);
 void kgran_dsp64(t_kgran *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);
 void kgran_setbuffers(t_kgran* x, t_symbol* s, long ac, t_atom* av);
-
+void kgran_set(t_kgran* x, t_symbol* s, long argc, t_atom* argv);
 void kgran_grainrate(t_kgran *x, double rl, double rm, double rh, double rt);
 void kgran_graindur(t_kgran *x, double dl, double dm, double dh, double dt);
 void kgran_grainhead(t_kgran *x, double hl, double hm, double hh, double ht);
@@ -168,7 +168,7 @@ void ext_main(void *r)
 	class_addmethod(c, (method)kgran_stop,		"stop", 0);
 	
 	class_addmethod(c, (method)kgran_notify,		"notify",	A_CANT, 0);
-	
+	class_addmethod(c, (method)kgran_set, "set", A_GIMME, 0);
 	class_addmethod(c, (method)kgran_assist,		"assist",	A_CANT, 0);
 	
 	// these float methods should be replaced with A_GIMME, see docs
@@ -373,7 +373,7 @@ void kgran_grainhead(t_kgran *x, double hl, double hm, double hh, double ht){
 }
 
 void kgran_trans(t_kgran *x, double fl, double fm, double fh, double ft){
-	x->transLow = fmax(fl, 20.);
+	x->transLow = fl;
 	x->transMid = fmax(fm, fl);
 	x->transHigh = fmax(fh, fm);
 	x->transTight = ft;
@@ -387,24 +387,28 @@ void kgran_pan(t_kgran *x, double pl, double pm, double ph, double pt) {
 }
 
 void kgran_new_grain(t_kgran *x, Grain *grain, double sync){
+	//post("New grain!");
 	int sr = sys_getsr();
 	int head = floor(sync * x->w_len);
 	
-	float floatShift = (float) prob(x->grainHeadLow, x->grainHeadMid, x->grainHeadHigh, x->grainHeadTight);
+	double floatShift =  prob(x->grainHeadLow, x->grainHeadMid, x->grainHeadHigh, x->grainHeadTight);
 	int idealShift = floor(floatShift * (float)x->w_len);
-	
+	//post("2");
+	//post("");
 	float trans = (float)prob(x->transLow, x->transMid, x->transHigh, x->transTight);
+	//post("Passed the trans loop");
 	float increment = cpsoct(10.0 + trans) * x->oneover_cpsoct10;
 	float offset; // deviation every sample versus the head
+	//post("3");
 	if (x->w_connected)
 		offset = increment - 1; // moving buffer
 	else
 		offset = increment; // static buffer 
-	
+	//post("4");
 	float grainDurSamps = (float) prob(x->grainDurLow, x->grainDurMid, x->grainDurHigh, x->grainDurTight) * sr;
 	int sampOffset = (int) round(abs(grainDurSamps * offset)); // how many total samples the grain will deviate from the normal buffer movement
 
-	
+	//post("Offset calculated");
 	
 	if (sampOffset >= x->w_len) // this grain cannot exist with size of the buffer
 	{
@@ -433,7 +437,7 @@ void kgran_new_grain(t_kgran *x, Grain *grain, double sync){
 	
 	grain->currTime = head + fmax(fmin(idealShift, maxShift), minShift); // adjust the grain so that it retains its duration within the buffer limitations
 	
-	
+	//post("Current time set");
 	
 	
 	
@@ -447,11 +451,12 @@ void kgran_new_grain(t_kgran *x, Grain *grain, double sync){
 	grain->panR = panR;
 	grain->panL = 1 - panR; // separating these in RAM means fewer sample rate calculations
 	grain->endTime = grainDurSamps * increment + grain->currTime;
-	
+	//post("New grain finished!");
 }
 
 void kgran_reset_grain_rate(t_kgran *x){
 	x->newGrainCounter = (int)round(sys_getsr() * prob(x->grainRateVarLow, x->grainRateVarMid, x->grainDurHigh, x->grainDurTight));
+	//post("Setting grain rate to %d", x->newGrainCounter);
 }
 
 
@@ -480,7 +485,7 @@ void kgran_perform64(t_kgran *x, t_object *dsp64, double **ins, long numins, dou
 		//post("DSP failure");
 		goto zero;
 	}
-	
+	//post("Running DSP loop");
 	while (n--){
 		if (x->w_connected) // check if the inlet is connected
 			head = *in++;
@@ -495,8 +500,9 @@ void kgran_perform64(t_kgran *x, t_object *dsp64, double **ins, long numins, dou
 				}
 				else
 				{
+					int currTimeInBuffer = currGrain->currTime % x->w_len;
 					float grainAmp = oscili(1, currGrain->ampSampInc, e, x->w_envlen, &((*currGrain).ampPhase));
-					float grainOut = grainAmp * b[(int)floor(currGrain->currTime)]; // should include an interpolation option at some point
+					float grainOut = grainAmp * b[currTimeInBuffer]; // should include an interpolation option at some point
 					currGrain->currTime += currGrain->waveSampInc;
 					*l_out += (grainOut * (double)currGrain->panL);
 					*r_out += (grainOut * (double)currGrain->panR);
@@ -514,10 +520,11 @@ void kgran_perform64(t_kgran *x, t_object *dsp64, double **ins, long numins, dou
 
 			}
 		}
+		x->newGrainCounter--;
 		l_out++;
 		r_out++;
 	}
-	
+	//post("DSP loop finished");
 	// if all current grains are occupied, we skip this request for a new grain
 	if (x->newGrainCounter <= 0)
 	{
@@ -525,7 +532,7 @@ void kgran_perform64(t_kgran *x, t_object *dsp64, double **ins, long numins, dou
 	}
 	
 	
-	x->newGrainCounter--;
+	
 
 	buffer_unlocksamples(buffer);
 	buffer_unlocksamples(env);
