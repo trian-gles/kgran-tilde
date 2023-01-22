@@ -270,9 +270,10 @@ void kgran_free(t_kgran *x)
 t_max_err kgran_notify(t_kgran *x, t_symbol *s, t_symbol *msg, void *sender, void *data)
 {
 	if (msg == ps_buffer_modified) {
-		post("BUFFER CHANGED");
+		// post("BUFFER CHANGED");
 		x->w_buffer_modified = true;
-		defer((t_object*)x, (method)kgran_setbuffers, NULL, 0, NULL);
+		if (!x->running)
+			defer((t_object*)x, (method)kgran_setbuffers, NULL, 0, NULL);
 		if (s == x->w_name) {
 			return buffer_ref_notify(x->w_buf, s, msg, sender, data);
 		}
@@ -478,6 +479,7 @@ void kgran_perform64(t_kgran *x, t_object *dsp64, double **ins, long numins, dou
 	b = buffer_locksamples(buffer);
 	e = buffer_locksamples(env);
 	
+	
 	double head = 0;
 	
 	if (!b || !e || !x->running)
@@ -489,7 +491,8 @@ void kgran_perform64(t_kgran *x, t_object *dsp64, double **ins, long numins, dou
 	while (n--){
 		if (x->w_connected) // check if the inlet is connected
 			head = *in++;
-		
+		*r_out = 0; // r_out already stores the input signal for some reason?  so we have to set it to 0
+		*l_out = 0;
 		for (size_t j = 0; j < MAXGRAINS; j++){
 			Grain* currGrain = &x->grains[j];
 			if (currGrain->isplaying)
