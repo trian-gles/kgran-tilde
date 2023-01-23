@@ -181,7 +181,7 @@
 									"numoutlets" : 2,
 									"outlettype" : [ "signal", "signal" ],
 									"patching_rect" : [ 173.0, 181.0, 180.0, 22.0 ],
-									"text" : "kgran~ staticbuf hanningwindow"
+									"text" : "stgran~ staticbuf hanningwindow"
 								}
 
 							}
@@ -789,7 +789,7 @@
 									"numoutlets" : 2,
 									"outlettype" : [ "signal", "signal" ],
 									"patching_rect" : [ 173.0, 181.0, 170.0, 22.0 ],
-									"text" : "kgran~ livebuf hanningwindow"
+									"text" : "stgran~ livebuf hanningwindow"
 								}
 
 							}
