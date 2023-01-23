@@ -1,6 +1,6 @@
 /**
 	@file
-	kgran~ - a granulation algorithm designed by Mara Helmuth, rewritten and ported to Max by Kieran McAuliffe
+	stgran~ - a granulation algorithm designed by Mara Helmuth, rewritten and ported to Max by Kieran McAuliffe
 
 */
 
@@ -34,7 +34,7 @@ typedef struct Grain {
 	bool isplaying;
 	} Grain;
 
-typedef struct _kgran {
+typedef struct _stgran {
 	t_pxobject w_obj;
 	t_buffer_ref *w_buf;
 	t_buffer_ref *w_env;
@@ -79,26 +79,26 @@ typedef struct _kgran {
 	double oneover_cpsoct10;
 	
 	short w_connected;
-} t_kgran;
+} t_stgran;
 
 
 
 
-void *kgran_new(t_symbol *s,  long argc, t_atom *argv);
-void kgran_free(t_kgran *x);
-t_max_err kgran_notify(t_kgran *x, t_symbol *s, t_symbol *msg, void *sender, void *data);
-void kgran_assist(t_kgran *x, void *b, long m, long a, char *s);
-void kgran_start(t_kgran *x);
-void kgran_stop(t_kgran *x);
-void kgran_perform64(t_kgran *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);
-void kgran_dsp64(t_kgran *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);
-void kgran_setbuffers(t_kgran* x, t_symbol* s, long ac, t_atom* av);
-void kgran_set(t_kgran* x, t_symbol* s, long argc, t_atom* argv);
-void kgran_grainrate(t_kgran *x, double rl, double rm, double rh, double rt);
-void kgran_graindur(t_kgran *x, double dl, double dm, double dh, double dt);
-void kgran_grainhead(t_kgran *x, double hl, double hm, double hh, double ht);
-void kgran_trans(t_kgran *x, double fl, double fm, double fh, double ft);
-void kgran_pan(t_kgran *x, double pl, double pm, double ph, double pt); 
+void *stgran_new(t_symbol *s,  long argc, t_atom *argv);
+void stgran_free(t_stgran *x);
+t_max_err stgran_notify(t_stgran *x, t_symbol *s, t_symbol *msg, void *sender, void *data);
+void stgran_assist(t_stgran *x, void *b, long m, long a, char *s);
+void stgran_start(t_stgran *x);
+void stgran_stop(t_stgran *x);
+void stgran_perform64(t_stgran *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);
+void stgran_dsp64(t_stgran *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);
+void stgran_setbuffers(t_stgran* x, t_symbol* s, long ac, t_atom* av);
+void stgran_set(t_stgran* x, t_symbol* s, long argc, t_atom* argv);
+void stgran_grainrate(t_stgran *x, double rl, double rm, double rh, double rt);
+void stgran_graindur(t_stgran *x, double dl, double dm, double dh, double dt);
+void stgran_grainhead(t_stgran *x, double hl, double hm, double hh, double ht);
+void stgran_trans(t_stgran *x, double fl, double fm, double fh, double ft);
+void stgran_pan(t_stgran *x, double pl, double pm, double ph, double pt); 
 
 double rrand() 
 {
@@ -156,40 +156,40 @@ double prob(double low,double mid,double high,double tight)
 }
 
 static t_symbol *ps_buffer_modified;
-static t_class *s_kgran_class;
+static t_class *s_stgran_class;
 
 
 void ext_main(void *r)
 {
-	t_class *c = class_new("kgran~", (method)kgran_new, (method)kgran_free, sizeof(t_kgran), NULL, A_GIMME, 0);
+	t_class *c = class_new("stgran~", (method)stgran_new, (method)stgran_free, sizeof(t_stgran), NULL, A_GIMME, 0);
 
-	class_addmethod(c, (method)kgran_dsp64,		"dsp64",	A_CANT, 0);
-	class_addmethod(c, (method)kgran_start,		"start", 0);
-	class_addmethod(c, (method)kgran_stop,		"stop", 0);
+	class_addmethod(c, (method)stgran_dsp64,		"dsp64",	A_CANT, 0);
+	class_addmethod(c, (method)stgran_start,		"start", 0);
+	class_addmethod(c, (method)stgran_stop,		"stop", 0);
 	
-	class_addmethod(c, (method)kgran_notify,		"notify",	A_CANT, 0);
-	class_addmethod(c, (method)kgran_set, "set", A_GIMME, 0);
-	class_addmethod(c, (method)kgran_assist,		"assist",	A_CANT, 0);
+	class_addmethod(c, (method)stgran_notify,		"notify",	A_CANT, 0);
+	class_addmethod(c, (method)stgran_set, "set", A_GIMME, 0);
+	class_addmethod(c, (method)stgran_assist,		"assist",	A_CANT, 0);
 	
 	// these float methods should be replaced with A_GIMME, see docs
-	class_addmethod(c, (method)kgran_grainrate, "grainrate", 
+	class_addmethod(c, (method)stgran_grainrate, "grainrate", 
 	A_FLOAT, A_FLOAT, A_FLOAT, A_FLOAT, 0);
 	
-	class_addmethod(c, (method)kgran_graindur, "graindur", 
+	class_addmethod(c, (method)stgran_graindur, "graindur", 
 	A_FLOAT, A_FLOAT, A_FLOAT, A_FLOAT, 0);
 	
-	class_addmethod(c, (method)kgran_grainhead, "grainhead", 
+	class_addmethod(c, (method)stgran_grainhead, "grainhead", 
 	A_FLOAT, A_FLOAT, A_FLOAT, A_FLOAT, 0);
 	
-	class_addmethod(c, (method)kgran_trans, "trans", 
+	class_addmethod(c, (method)stgran_trans, "trans", 
 	A_FLOAT, A_FLOAT, A_FLOAT, A_FLOAT, 0);
 	
-	class_addmethod(c, (method)kgran_pan, "pan", 
+	class_addmethod(c, (method)stgran_pan, "pan", 
 	A_FLOAT, A_FLOAT, A_FLOAT, A_FLOAT, 0);
 
 	class_dspinit(c);
 	class_register(CLASS_BOX, c);
-	s_kgran_class = c;
+	s_stgran_class = c;
 
 	ps_buffer_modified = gensym("buffer_modified");
 }
@@ -205,9 +205,9 @@ void ext_main(void *r)
 	*/
 	
 // will eventually need to handle for buffers with more than one channel
-void *kgran_new(t_symbol *s,  long argc, t_atom *argv)
+void *stgran_new(t_symbol *s,  long argc, t_atom *argv)
 {
-	t_kgran *x = (t_kgran *)object_alloc(s_kgran_class);
+	t_stgran *x = (t_stgran *)object_alloc(s_stgran_class);
 	t_symbol *buf=0;
 	t_symbol *env=0;
 
@@ -255,7 +255,7 @@ void *kgran_new(t_symbol *s,  long argc, t_atom *argv)
 
 
 
-void kgran_free(t_kgran *x)
+void stgran_free(t_stgran *x)
 {
 	dsp_free((t_pxobject *)x);
 
@@ -267,13 +267,13 @@ void kgran_free(t_kgran *x)
 
 // A notify method is required for our buffer reference
 // This handles notifications when the buffer appears, disappears, or is modified.
-t_max_err kgran_notify(t_kgran *x, t_symbol *s, t_symbol *msg, void *sender, void *data)
+t_max_err stgran_notify(t_stgran *x, t_symbol *s, t_symbol *msg, void *sender, void *data)
 {
 	if (msg == ps_buffer_modified) {
 		// post("BUFFER CHANGED");
 		x->w_buffer_modified = true;
 		if (!x->running)
-			defer((t_object*)x, (method)kgran_setbuffers, NULL, 0, NULL);
+			defer((t_object*)x, (method)stgran_setbuffers, NULL, 0, NULL);
 		if (s == x->w_name) {
 			return buffer_ref_notify(x->w_buf, s, msg, sender, data);
 		}
@@ -293,7 +293,7 @@ t_max_err kgran_notify(t_kgran *x, t_symbol *s, t_symbol *msg, void *sender, voi
 // SET BUFFER
 ////
 
-void kgran_setbuffers(t_kgran* x, t_symbol* s, long ac, t_atom* av) {
+void stgran_setbuffers(t_stgran* x, t_symbol* s, long ac, t_atom* av) {
 	object_free(x->w_buf);
 	object_free(x->w_env);
 
@@ -307,13 +307,13 @@ void kgran_setbuffers(t_kgran* x, t_symbol* s, long ac, t_atom* av) {
 	x->w_envlen = buffer_getframecount(e);
 }
 
-void kgran_set(t_kgran* x, t_symbol* s, long argc, t_atom* argv) {
+void stgran_set(t_stgran* x, t_symbol* s, long argc, t_atom* argv) {
 	x->w_name = atom_getsymarg(0, argc, argv);
 	x->w_envname = atom_getsymarg(1, argc, argv);
-	defer((t_object*)x, (method)kgran_setbuffers, NULL, 0, NULL);
+	defer((t_object*)x, (method)stgran_setbuffers, NULL, 0, NULL);
 }
 
-void kgran_assist(t_kgran *x, void *b, long m, long a, char *s)
+void stgran_assist(t_stgran *x, void *b, long m, long a, char *s)
 {
 	if (m == ASSIST_INLET) {	// inlets
 		switch (a) {
@@ -332,18 +332,18 @@ void kgran_assist(t_kgran *x, void *b, long m, long a, char *s)
 ////
 // START AND STOP MSGS
 ////
-void kgran_start(t_kgran *x){
+void stgran_start(t_stgran *x){
 	if (!buffer_ref_exists(x->w_buf) || !buffer_ref_exists(x->w_env))
 	{
 		error("Make sure you've configured a wavetable buffer and envelope buffer!");
-		defer((t_object*)x, (method)kgran_setbuffers, NULL, 0, NULL);
+		defer((t_object*)x, (method)stgran_setbuffers, NULL, 0, NULL);
 	}
 
 	else
 		x->running = true;
 }
 
-void kgran_stop(t_kgran *x){
+void stgran_stop(t_stgran *x){
 	x->running = false;
 }
 
@@ -352,42 +352,42 @@ void kgran_stop(t_kgran *x){
 // PARAMETER MESSAGES
 ////
 
-void kgran_grainrate(t_kgran* x, double rl, double rm, double rh, double rt) {
+void stgran_grainrate(t_stgran* x, double rl, double rm, double rh, double rt) {
 	x->grainRateVarLow = rl;
 	x->grainRateVarMid = fmax(rm, rl);
 	x->grainRateVarHigh = fmax(rh, rm);
 	x->grainRateVarTight = rt;
 }
 
-void kgran_graindur(t_kgran* x, double dl, double dm, double dh, double dt) {
+void stgran_graindur(t_stgran* x, double dl, double dm, double dh, double dt) {
 	x->grainDurLow = dl;
 	x->grainDurMid = fmax(dm, dl);
 	x->grainDurHigh = fmax(dh, dm);
 	x->grainDurTight = dt;
 }
 
-void kgran_grainhead(t_kgran *x, double hl, double hm, double hh, double ht){
+void stgran_grainhead(t_stgran *x, double hl, double hm, double hh, double ht){
 	x->grainHeadLow = fmax(0, hl);
 	x->grainHeadMid = fmax(hm, hl);
 	x->grainHeadHigh = fmin(fmax(hh, hm), 1);
 	x->grainHeadTight = ht;
 }
 
-void kgran_trans(t_kgran *x, double fl, double fm, double fh, double ft){
+void stgran_trans(t_stgran *x, double fl, double fm, double fh, double ft){
 	x->transLow = fl;
 	x->transMid = fmax(fm, fl);
 	x->transHigh = fmax(fh, fm);
 	x->transTight = ft;
 }
 
-void kgran_pan(t_kgran *x, double pl, double pm, double ph, double pt) {
+void stgran_pan(t_stgran *x, double pl, double pm, double ph, double pt) {
 	x->panLow = fmax(0, pl);
 	x->panMid = fmax(pm, pl);
 	x->panHigh = fmin(fmax(ph, pm), 1);
 	x->panTight = pt;
 }
 
-void kgran_new_grain(t_kgran *x, Grain *grain, double sync){
+void stgran_new_grain(t_stgran *x, Grain *grain, double sync){
 	//post("New grain!");
 	int sr = sys_getsr();
 	int head = floor(sync * x->w_len);
@@ -455,14 +455,14 @@ void kgran_new_grain(t_kgran *x, Grain *grain, double sync){
 	//post("New grain with start time %f end time %f", grain->currTime, grain->endTime);
 }
 
-void kgran_reset_grain_rate(t_kgran *x){
+void stgran_reset_grain_rate(t_stgran *x){
 	x->newGrainCounter = (int)round(sys_getsr() * prob(x->grainRateVarLow, x->grainRateVarMid, x->grainRateVarHigh, x->grainRateVarTight));
 	//post("Setting grain rate to %d", x->newGrainCounter);
 }
 
 
 // rewrite
-void kgran_perform64(t_kgran *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
+void stgran_perform64(t_stgran *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
 	t_double		*in = ins[0];
 	t_double		*r_out = outs[0];
@@ -516,9 +516,9 @@ void kgran_perform64(t_kgran *x, t_object *dsp64, double **ins, long numins, dou
 
 			if ((x->newGrainCounter <= 0) && !currGrain->isplaying)
 			{
-				kgran_reset_grain_rate(x);
+				stgran_reset_grain_rate(x);
 				if (x->newGrainCounter > 0) // we don't allow two grains to be create on the same frame
-					{kgran_new_grain(x, currGrain, head);}
+					{stgran_new_grain(x, currGrain, head);}
 				else
 					{x->newGrainCounter = 1;}
 
@@ -532,7 +532,7 @@ void kgran_perform64(t_kgran *x, t_object *dsp64, double **ins, long numins, dou
 	// if all current grains are occupied, we skip this request for a new grain
 	if (x->newGrainCounter <= 0)
 	{
-		kgran_reset_grain_rate(x);
+		stgran_reset_grain_rate(x);
 	}
 	
 	
@@ -549,8 +549,8 @@ zero:
 }
 
 // adjust for the appropriate number of inlets and outlets (2 out, one in)
-void kgran_dsp64(t_kgran *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
+void stgran_dsp64(t_stgran *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
 {
 	x->w_connected = count[1];
-	object_method(dsp64, gensym("dsp_add64"), x, kgran_perform64, 0, NULL);
+	object_method(dsp64, gensym("dsp_add64"), x, stgran_perform64, 0, NULL);
 }
